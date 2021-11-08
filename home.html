@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Document</title>
+    <script type="text/javascript" src="js/jquery.js"></script>
+
+    
+    </style>
+</head>
+
+<body style="margin: 30px;">
+
+    <div class=" container">
+
+        <div class="row">
+            <form action="">
+                <fieldset>
+                    <legend>Item Name</legend>
+                    <input type="text" class="item" name="" id="item">
+                    <hr>
+                    <legend>Quantity</legend>
+                    <input type="number" id="quantity" name="">
+                    <hr>
+                    <button type="button" id="insert" class="btn-success">Insert</button>
+                    <button type="button" id="create" class="btn-success">Create</button>
+                    <button type="button" id="delete" class="btn-success-danger">Delete</button>
+                    <button type="button" id="fetch-data" class="btn-success">Fetch Record</button>
+            </form>
+            </fieldset>
+            <hr>
+            <h4>Record</h4>
+            <table class="teble table-bordered- table-hover" id="the_list">
+
+
+            </table>
+        </div>
+
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script type="text/javascript">
+        //connect to the database
+        var db = openDatabase("itemDB", "1.0", "itemDB",
+            65535);
+
+        $(function () {
+            //craete a table
+            $("#create").click(function () {
+
+                db.transaction(function (transaction) {
+                    let sql = "CREATE TABLE items" +
+                        "(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
+                        "item VARCHAR(100) NOT NULL," +
+                        "quantity INT(5) NOT NULL)";
+
+                    transaction.executeSql(sql, undefined,
+                        function () {
+                            alert("Table has been created scuccessfully");
+                        },
+                        function () {
+                            alert("Table is already been created")
+                        })
+                })
+            })
+        })
+
+        //remove data
+        $("#delete").click(function () {
+
+            if (!confirm("Are you sure you want to delete this table?",
+                "")) return;
+
+            db.transaction(function (transaction) {
+
+                var sql = "DROP TABLE items";
+                transaction.executeSql(sql, undefined,
+                    function () {
+                        alert("Table is deleted successfully")
+                    }, function () {
+                        alert("Errot occured while deleting this table");
+                    })
+            })
+        })
+
+        //insert data to the table
+        $("#insert").click(function () {
+
+            var item = $("#item").val();
+            var qty = $("#quantity").val();
+
+            db.transaction(function (transaction) {
+
+                var sql = "INSERT INTO items(item,quantity) VALUES(?,?)";
+
+                transaction.executeSql(sql, [item, qty], function () {
+                    alert("New item has been added");
+                }, function (transaction, error) {
+                    alert(error.message);
+                })
+            })
+        })
+
+        //fetch and show record on screen
+
+        $("#fetch-data").click(function () {
+            $("#the_list").children().remove();
+            db.transaction(function (transaction) {
+                var sql = "select * from items ORDER BY id DESC";
+                transaction.executeSql(sql, undefined,
+                    function (transaction, result) {
+                        if(result.rows.length) {
+
+                            for (var i = 0; i < result.rows.length; i++) {
+                                let row = result.rows.item(i);
+                                var item = row.item;
+                                var id = row.id;
+                                var quantity = row.quantity;
+                                $("#the_list").append('<tr><td>' + id + '</td><td>' + item + '</td><td>' + quantity + '</td></tr>');
+                            }
+
+                        } else {
+                            $("#the_list").append('<tr colspan="3" align="center"><td>NO Item Found</td></tr>'
+                            );
+                        }
+                    }), function (transaction) {
+                        alert(err.message);
+                    }
+            })
+        })
+    </script>
+
+
+</body>
+
+</html>
